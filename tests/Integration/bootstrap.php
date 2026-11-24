@@ -50,6 +50,19 @@ if (! is_readable($wordpress.'wp-settings.php')) {
 }
 
 /*
+ * A freshly downloaded core (CI's `wp core download` or tarball) has no uploads folder,
+ * and WP_UnitTestCase lists that folder before every test, so every test errors with
+ * "RecursiveDirectoryIterator::__construct(.../wp-content/uploads): Failed to open
+ * directory". An install that already has one is left alone.
+ */
+$uploads = $wordpress.'wp-content/uploads';
+if (! is_dir($uploads) && ! mkdir($uploads, 0775, true) && ! is_dir($uploads)) {
+    fwrite(STDERR, PHP_EOL."Refusing to run: could not create {$uploads}.".PHP_EOL.PHP_EOL);
+
+    exit(1);
+}
+
+/*
  * Refuse to run against the working install's database.
  *
  * WordPress' test installer DROPS EVERY TABLE it finds and rebuilds the schema.
