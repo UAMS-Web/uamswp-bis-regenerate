@@ -1,0 +1,12 @@
+# Pin working-tree and committed text to LF; a committed eol outranks core.autocrlf.
+# Keep this line first.
+* text=auto eol=lf
+
+# Keep-list for the GitHub download (the keep-the-download-to-what-runs rule): every
+# top-level entry is left out of `git archive`, then each path the plugin runs is put
+# back. A new runtime folder needs its `-export-ignore` line in the same change;
+# scripts/check-download-archive.mjs (the download-archive CI job) fails otherwise.
+/* export-ignore
+/.* export-ignore
+/includes -export-ignore
+/uamswp-bis-regenerate.php -export-ignore

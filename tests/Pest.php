@@ -1,0 +1,55 @@
+<?php
+
+/**
+ * Pest configuration, for the Unit suite.
+ *
+ * The Integration suite is class-based PHPUnit 9.6 under tests/Integration, run
+ * from its own Composer setup; Pest never loads it.
+ */
+
+declare(strict_types=1);
+
+use Mockery\Adapter\Phpunit\MockeryPHPUnitIntegration;
+use Mockery\MockInterface;
+
+use function Brain\Monkey\setUp;
+use function Brain\Monkey\tearDown;
+
+/*
+ * Brain Monkey around every test.
+ *
+ * setUp() defines WordPress' hook functions and arms Patchwork; tearDown()
+ * verifies every expectation the test set (a `->once()` that never happened
+ * fails here) and removes every mock, so nothing leaks into the next test.
+ *
+ * The assertion count: Brain Monkey's expectations are Mockery expectations,
+ * which PHPUnit does not count. Without adding them, a test whose only check is
+ * `Functions\expect(...)->once()` reports as risky, and failOnRisky fails it.
+ * Mockery's own PHPUnit integration adds them, after the test body and before
+ * tearDown() runs, so the count is made inside vendor/ and Pest.php needs no
+ * `$this` (PHPStan cannot type it, and PHPUnit marks addToAssertionCount()
+ * `@internal`, so calling it here needs a suppression at level 10).
+ */
+uses(MockeryPHPUnitIntegration::class)
+    ->beforeEach(function (): void {
+        setUp();
+    })
+    ->afterEach(function (): void {
+        tearDown();
+    })
+    ->in('Unit');
+
+/**
+ * Installs a mocked $wpdb for one test and returns it, typed, so tests can set
+ * expectations without reaching through $GLOBALS. The real class never loads in
+ * the Unit suite; Mockery declares an empty `wpdb` for the mock.
+ */
+function bis_mock_wpdb(string $options_table = 'wp_options'): MockInterface&wpdb
+{
+    $wpdb = Mockery::mock(wpdb::class);
+    assert($wpdb instanceof wpdb);
+    $wpdb->options = $options_table;
+    $GLOBALS['wpdb'] = $wpdb;
+
+    return $wpdb;
+}

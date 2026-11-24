@@ -1,0 +1,45 @@
+# From the code-quality skill's phpstan-wordpress template (UAMS-Web/uams-claude-skills#10).
+# New code with no debt, so it opens at `max`.
+includes:
+    - vendor/szepeviktor/phpstan-wordpress/extension.neon
+    - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+    # Pest's extension: chained expectations analyze instead of reporting undefined properties.
+    - vendor/pestphp/pest/extension.neon
+
+parameters:
+    # Floor (composer.json require.php, the header's Requires PHP) to the development PHP.
+    phpVersion:
+        min: 80200
+        max: 80400
+
+    level: max
+
+    paths:
+        - includes
+        - uamswp-bis-regenerate.php
+        - tests
+
+    # The Integration suite's own Composer setup lives inside tests/.
+    excludePaths:
+        analyse:
+            - tests/Integration/vendor
+        # The Unit suite's empty stand-ins for core classes; the stubs describe the real ones.
+        analyseAndScan:
+            - tests/Support/wp-stand-ins.php
+
+    # WordPress' test classes and the polyfills ship with wp-phpunit, not the stubs.
+    # Needs `composer setup:integration` to have run.
+    scanDirectories:
+        - tests/Integration/vendor/wp-phpunit/wp-phpunit/includes
+        - tests/Integration/vendor/yoast/phpunit-polyfills/src
+
+    # Checkout-scoped cache (see the template for why); /.phpstan/ is git-ignored.
+    tmpDir: .phpstan
+
+    ignoreErrors:
+        # Pest routes its public API through classes it tags @internal.
+        -
+            identifier: method.internalClass
+            message: '#of internal class Pest\\#'
+            path: tests
+            reportUnmatched: false
