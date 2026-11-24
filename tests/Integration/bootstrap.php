@@ -36,6 +36,16 @@ require_once __DIR__.'/vendor/autoload.php';
  */
 $wordpress = rtrim((string) (getenv('WP_TESTS_ABSPATH') ?: dirname(__DIR__, 5)), '/').'/';
 
+/*
+ * Resolve `..` and symlinks. CI passes `<workspace>/../wordpress`, and wp_mkdir_p()
+ * refuses any path containing `../` (a path-traversal guard), returning false without
+ * an error, so every folder a test makes under uploads would silently not exist.
+ */
+$resolved = realpath($wordpress);
+if ($resolved !== false) {
+    $wordpress = rtrim($resolved, '/').'/';
+}
+
 putenv('WP_TESTS_ABSPATH='.$wordpress);
 
 if (! is_readable($wordpress.'wp-settings.php')) {

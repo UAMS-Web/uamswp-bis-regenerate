@@ -146,7 +146,7 @@ final class RegenerateTest extends IntegrationTestCase
 
         try {
             $this->made[] = $root;
-            wp_mkdir_p($root.'/'.$id);
+            $this->assertTrue(wp_mkdir_p($root.'/'.$id), 'wp_mkdir_p() refused '.$root.'/'.$id);
             file_put_contents($root.'/'.$id.'/a.jpg', 'x');
             set_transient('image_sizer_moved', $uploads['baseurl'].'/resized-elsewhere/'.$id.'/a.jpg', DAY_IN_SECONDS);
 
@@ -280,7 +280,7 @@ final class RegenerateTest extends IntegrationTestCase
     private function bis_folder(int $id, array $files): string
     {
         $dir = $this->plugin->bis_root().'/'.$id;
-        wp_mkdir_p($dir);
+        $this->assertTrue(wp_mkdir_p($dir), 'wp_mkdir_p() refused '.$dir);
         foreach ($files as $file) {
             file_put_contents($dir.'/'.$file, 'x');
         }
